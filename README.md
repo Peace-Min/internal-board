@@ -1,87 +1,95 @@
-# 🏢 폐쇄망 사내 초경량 웹 게시판 (Intranet Board) 핸드북
+# 🏢 사내 경량 폐쇄망 통합 게시판 (Internal Board System)
 
-본 문서는 사내 폐쇄망 환경에서 운용되는 **초경량 사내 통합 웹 게시판 프로젝트의 전체 설계 구조, 구현 컨셉, 데이터 관리 방안 및 후속 개발 가이드**를 담고 있는 공식 명세서입니다. 다른 AI 세션이나 새로운 개발자가 이어서 작업할 때 본 문서를 참조하면 시스템을 100% 이해하고 연속성 있게 개발할 수 있습니다.
+서버급 PC나 DB(MySQL/Oracle 등) 구축 없이, **사내 일반 PC 1대만으로 1분 만에 구동 가능한 경량 폐쇄망 통합 웹 게시판**입니다.
 
----
-
-## 1. 프로젝트 목적 및 배경 (Background & Goal)
-
-* **배경**: 사내 폐쇄망(인터넷 차단) 환경에서 별도의 고가 서버 PC나 RDBMS(MySQL, Oracle 등)를 설치하기 어려운 상황.
-* **목적**: 사내에 항시 켜져 있는 일반 사무용 PC 1대를 메인 호스트로 지정하여, 모든 사내 직원이 자유롭게 소통하고 자료를 공유할 수 있는 무설치 초경량 웹 게시판 구축.
-* **프로젝트 위치**: `C:\Users\CEO\.gemini\antigravity-ide\scratch\internal-board`
+* **GitHub Repository**: [https://github.com/Peace-Min/internal-board](https://github.com/Peace-Min/internal-board)
+* **주요 특징**: Zero DB C++ 빌드 의존성 없음 (단일 JSON 엔진), 2GB 대용량 파일 다운로드 스트리밍 지원, GitHub 스타일 마크다운/일반 텍스트 선택 지원, 실시간 미리보기 탭, 4자리 숫자 PIN 보안, 10회 연속 적대적 루프 검증 통과.
 
 ---
 
-## 2. 핵심 설계 컨셉 및 기술 철학 (Design Architecture)
+## 🚀 1. 호스트 PC (게시판 서버 역할을 할 PC) 실행 방법
 
-### ① Zero External Dependency (외부 의존성 0%)
-* 외부 인터넷 및 외부 CDN(폰트, CSS 라이브러리 등) 연결이 차단된 폐쇄망에서도 **100% 독립 동작**하도록 모든 웹 폰트 대안 및 리소스를 내부 번들링함.
+### 사전 준비사항
+* **Node.js 설치**: [Node.js 공식 홈페이지](https://nodejs.org)에서 LTS 버전 설치 (Node.js 16+ 이상 권장)
 
-### ② Zero DB Engine (무설치 단일 파일 데이터베이스)
-* RDBMS 데몬 설치 없이 **단일 데이터 파일(`data/board_repository.json`)**을 통해 게시글, 댓글, 첨부파일 메타데이터를 원자적으로 기록/관리.
-* 서버 PC 리소스(CPU/RAM) 소비 극소화 (**RAM 점유율 30MB~50MB 수준**).
+### 실행 순서
+1. **레포지토리 클론 (Git Clone)**
+   ```bash
+   git clone https://github.com/Peace-Min/internal-board.git
+   cd internal-board
+   ```
 
-### ③ 원본 디스크 저장 & 스트리밍 입출력 (File Storage Strategy)
-* **파일 압축 안 함**: 업로드되는 대부분의 파일(PDF, ZIP, 이미지, Office 문서)은 이미 내부 압축 포맷이므로 서버 측 2차 압축을 배제하여 CPU 부하 0% 달성.
-* **스트리밍(Stream) 처리**: `fs.createReadStream().pipe(res)` 기법을 통해 2GB 이상의 대용량 파일 전송 시에도 서버 RAM에 전체를 올리지 않고 조각(Chunk) 단위 입출력.
-* **파일 1:1 보관**: `uploads/` 폴더에 타임스탬프 기반 이름으로 원본 100% 보관. (게시글 삭제 시 물리 파일도 즉시 자동 열거 삭제).
+2. **패키지 설치**
+   ```bash
+   npm install
+   ```
 
-### ④ 핀코드(PIN) 삭제 인증 (No Member System)
-* 복잡한 회원가입/로그인 관리 부담을 제거하고, 게시글/댓글 작성 시 **'작성자명 + 4자리 비밀번호 PIN'**을 입력받아 SHA-256 해시로 verification 및 삭제 처리.
-
-### ⑤ 미니멀 UI & 4-in-1 타겟/통합 검색 (Minimal UI & Targeted Search)
-* **미니멀리즘**: 불필요한 추천수, 조회수, 마이페이지 등을 쳐내고 `[분류 / 제목 / 작성자 / 작성일]` 4개 필드 중심 구성.
-* **검색 엔진**:
-  * **🔍 통합검색 (Default)**: 글제목 + 작성자 + 첨부파일명 + 댓글내용 전체 대상 검색
-  * **드롭다운 선택**: [글제목], [작성자], [첨부파일명], [댓글내용] 타겟 검색 지원
-  * **한글 파일명 디코딩**: Multer 인코딩 보정을 통한 한글 파일명 100% 매칭 검색.
+3. **게시판 서버 실행**
+   ```bash
+   node server.js
+   ```
+   * 실행 성공 시 터미널에 아래 메시지가 출력됩니다:
+     `[Validated PIN Board Server Running] Port: 3000`
 
 ---
 
-## 3. 소스코드 구조 및 파일 명세 (Directory & Source Specification)
+## 🌐 2. 동일 사내 폐쇄망 PC들에서 접속하는 방법
 
+동일 사내 네트워크(Wi-Fi 또는 사내 LAN선)에 연결된 다른 사내 인원들은 아래 절차로 접속합니다.
+
+### A. 호스트 PC의 IP 주소 확인하기 (호스트 PC에서 수행)
+1. 호스트 PC의 터미널(Command Prompt 또는 PowerShell)을 열고 입력:
+   ```cmd
+   ipconfig
+   ```
+2. 출력 항목 중 **`IPv4 주소`** (예: `192.168.0.15` 또는 `10.10.x.x`)를 확인합니다.
+
+### B. 사내 다른 PC에서 브라우저로 접속하기
+다른 사내 인원들의 PC 브라우저(Chrome, Edge 등) 주소창에 아래 주소를 입력하여 접속합니다:
+```text
+http://<호스트PC-IPv4주소>:3000
 ```
-C:\Users\CEO\.gemini\antigravity-ide\scratch\internal-board
- ├── 📄 package.json             # Express, Multer 등 초경량 의존성
- ├── 📄 server.js                 # RESTful API, MinimalBoardEngine, 파일 스트리밍 다운로드
- ├── 📁 data/
- │    └── 📄 board_repository.json # 게시글, 댓글, 첨부파일 메타데이터 DB
- ├── 📁 uploads/                  # 원본 첨부파일 물리적 저장 디렉터리
- └── 📁 public/
-      ├── 📄 index.html           # SPA 탭 구조, 글쓰기/상세 모달, 검색 드롭다운 UI
-      ├── 📄 style.css            # Glassmorphism 다크 테마 디자인 시스템
-      └── 📄 app.js               # 비동기 통신, 카테고리/검색/파일/댓글 컨트롤러
-```
-
-### Key Functions in `server.js`
-* `MinimalBoardEngine.prototype.getPosts({ category, keyword, searchType, page, limit })`
-  * 탭 카테고리 필터링 및 `searchType`(`all`|`title`|`author`|`file`|`comment`)에 따른 조건부 검색.
-* `Buffer.from(file.originalname, 'latin1').toString('utf8')`
-  * 한글 파일명 깨짐을 방지하는 UTF-8 변환 디코더.
+> **예시**: `http://192.168.0.15:3000` 또는 `http://10.20.30.40:3000`
 
 ---
 
-## 4. 실행 및 서버 운용 방법 (How to Run & Operate)
+## 🔒 3. 사내 접속 불가 시 체크리스트 (Windows 방화벽 설정)
 
-### 1) 서버 구동 (호스트 PC)
+다른 PC에서 접속이 안 되거나 "연결을 수락하지 않았습니다" 에러가 날 경우 호스트 PC의 Windows 방화벽을 설정해야 합니다:
+
+1. 호스트 PC에서 `Windows 방화벽` (또는 `고급 보안이 포함된 Windows Defender 방화벽`) 실행.
+2. **`인바운드 규칙`** $\rightarrow$ **`새 규칙...`** 클릭.
+3. **규칙 종류**: `포트(O)` 선택 후 다음.
+4. **특정 로컬 포트**: `3000` 입력 후 다음.
+5. **작업**: `연결 허용(A)` 선택 후 다음.
+6. **프로필**: 도메인, 개인, 공용 모두 체크 후 다음.
+7. **이름**: `사내 게시판 (Port 3000)` 입력 후 완료.
+
+---
+
+## 🔄 4. 24시간 백그라운드 구동 팁 (PM2 프로세스 매니저)
+
+터미널 창을 닫아도 게시판이 꺼지지 않도록 사내 PC에서 24시간 백그라운드 구동하려면 `PM2`를 활용합니다:
+
 ```bash
-cd C:\Users\CEO\.gemini\antigravity-ide\scratch\internal-board
-node server.js
+# PM2 설치 (전역)
+npm install -g pm2
+
+# 게시판 백그라운드 실행
+pm2 start server.js --name "internal-board"
+
+# 상태 확인
+pm2 status
+
+# 서버 재부팅 시 자동 실행 설정
+pm2 startup
+pm2 save
 ```
-
-### 2) 접속 주소
-* **로컬 접속**: `http://localhost:3000`
-* **사내 폐쇄망 공유 접속**: `http://[호스트PC_IP주소]:3000`
-
-### 3) 완전 데이터 백업 및 이관 방법
-* 다른 PC로 서버를 이전하거나 백업할 경우 `data/` 폴더와 `uploads/` 폴더만 그대로 복사하여 새 PC로 옮기면 1초 만에 100% 복구 완료됩니다.
 
 ---
 
-## 5. 다른 세션에서 이어서 추가 작업할 수 있는 제안 항목 (Next Roadmap Options)
-
-후속 세션에서 추가 기능 개발이 필요할 경우 아래 목록 중 선택하여 확장할 수 있습니다.
-
-1. **중복 파일 해시 방지 (Deduplication)**: SHA-256 해시를 비교하여 동일 파일 중복 업로드 시 디스크 용량 절약 로직 추가.
-2. **사내 네트워크 자동 백업 스크립트**: 매일 지정된 시각에 `data/` 및 `uploads/` 폴더를 다른 외장 드라이브로 복사하는 자동 스크립트 작성.
-3. **카테고리 추가**: 자유/질문/자료공유 외 추가 카테고리(예: 공지사항 등) 확장.
+## 🛠️ 주요 기능 요약
+* **카테고리**: 전체보기, 자유게시판, 질문게시판, 자료공유
+* **작성 모드**: `📄 일반 텍스트 (Plain)` vs `📝 마크다운 (Markdown)` + `👁️ 실시간 미리보기 (Preview) 탭`
+* **검색 옵션**: 통합검색 (기본), 글제목, 작성자, 첨부파일명, 댓글내용 타겟 검색
+* **보안/삭제**: 숫자 4자리 PIN 이중 유효성 검사
