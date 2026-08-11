@@ -79,7 +79,7 @@
     </main>
   </div>
 
-  <!-- 글쓰기 모달 (UI/UX 대폭 개선) -->
+  <!-- 글쓰기 모달 (숫자 4자리 PIN 제약 세팅) -->
   <div class="modal-backdrop" id="modal-create-post">
     <div class="modal-card">
       <div class="modal-header">
@@ -102,8 +102,8 @@
               <input type="text" id="post-author" name="author" placeholder="예: 홍길동 대리" required>
             </div>
             <div class="form-group flex-1">
-              <label for="post-pincode">삭제 암호 (PIN 4자리) <span class="req">*</span></label>
-              <input type="password" id="post-pincode" name="pinCode" placeholder="숫자 4자리" required maxlength="10">
+              <label for="post-pincode">삭제 암호 (숫자 4자리) <span class="req">*</span></label>
+              <input type="password" id="post-pincode" name="pinCode" placeholder="숫자 4자리" required pattern="\d{4}" maxlength="4" inputmode="numeric">
             </div>
           </div>
 
@@ -197,7 +197,7 @@
           <div class="comment-input-card">
             <div class="form-row">
               <input type="text" id="comment-author" placeholder="이름" style="max-width: 140px;">
-              <input type="password" id="comment-pin" placeholder="암호" style="max-width: 100px;">
+              <input type="password" id="comment-pin" placeholder="암호(4자리)" style="max-width: 120px;" pattern="\d{4}" maxlength="4" inputmode="numeric">
               <input type="text" id="comment-content" placeholder="댓글 내용을 입력하세요..." class="flex-2">
               <button class="btn btn-primary" id="btn-submit-comment">등록</button>
             </div>

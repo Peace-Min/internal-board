@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     postCategorySelect: document.getElementById('post-category'),
     postContentTypeSelect: document.getElementById('post-content-type'),
     postContentTextarea: document.getElementById('post-content'),
+    postPinInput: document.getElementById('post-pincode'),
     
     // Editor Tabs & Preview
     tabEditorWrite: document.getElementById('tab-editor-write'),
@@ -65,6 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
     qna: { name: '질문게시판', badgeClass: 'badge-qna' },
     share: { name: '자료공유', badgeClass: 'badge-share' }
   };
+
+  // PIN 유효성 검사 (정확히 숫자 4자리)
+  function validatePin(pin) {
+    const isDigit4 = /^\d{4}$/.test(String(pin || '').trim());
+    if (!isDigit4) {
+      alert('⚠️ 삭제 비밀번호는 정확히 "숫자 4자리"로 입력하셔야 합니다. (예: 1234)');
+      return false;
+    }
+    return true;
+  }
 
   init();
 
@@ -107,23 +118,33 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.btnCancelCreate.addEventListener('click', () => closeModal(elements.modalCreatePost));
     elements.btnCloseView.addEventListener('click', () => closeModal(elements.modalViewPost));
 
-    // Editor Write vs Preview 탭 이벤트
     elements.tabEditorWrite.addEventListener('click', () => switchEditorTab('write'));
     elements.tabEditorPreview.addEventListener('click', () => switchEditorTab('preview'));
 
-    // 작성 모드(드롭다운) 변경 시 즉시 미리보기 갱신!
     elements.postContentTypeSelect.addEventListener('change', (e) => {
       const isMd = e.target.value === 'markdown';
       elements.editorModeHint.textContent = isMd ? '📝 마크다운 서식 작성 중 (Preview 지원)' : '📄 일반 텍스트 작성 중';
-      updatePreview(); // 즉시 미리보기 리렌더링
+      updatePreview();
     });
 
-    // 본문 내용 작성(input) 중에도 미리보기 실시간 자동 갱신!
     elements.postContentTextarea.addEventListener('input', () => {
       if (state.currentEditorTab === 'preview') {
         updatePreview();
       }
     });
+
+    // PIN 필드 실시간 키보드 제한 (숫자만 입력되도록 실시간 필터링)
+    const enforceNumericPin = (el) => {
+      if (!el) return;
+      ['input', 'keyup', 'change'].forEach(evt => {
+        el.addEventListener(evt, (e) => {
+          e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+        });
+      });
+    };
+
+    enforceNumericPin(elements.postPinInput);
+    enforceNumericPin(elements.commentPin);
 
     elements.fileDropzone.addEventListener('click', () => elements.fileInput.click());
     elements.fileInput.addEventListener('change', (e) => {
@@ -150,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.btnSubmitComment.addEventListener('click', handleCreateComment);
   }
 
-  // Editor Write / Preview 탭 스위칭
   function switchEditorTab(tabName) {
     state.currentEditorTab = tabName;
     if (tabName === 'write') {
@@ -167,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 실시간 미리보기 렌더링 업데이트 함수 (독립 갱신 엔진)
   function updatePreview() {
     const text = elements.postContentTextarea.value.trim();
     const isMarkdownMode = elements.postContentTypeSelect.value === 'markdown';
@@ -391,6 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (!validatePin(pinCode)) return;
+
     try {
       const res = await fetch(`/api/posts/${state.activePostId}/comments`, {
         method: 'POST',
@@ -401,13 +422,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (json.success) {
         elements.commentContent.value = '';
         openPostDetail(state.activePostId);
+      } else {
+        alert(json.message);
       }
     } catch (err) {}
   }
 
   async function handleDeleteComment(commentId) {
-    const pinCode = prompt('삭제 비밀번호:');
+    const pinCode = prompt('삭제 비밀번호 (숫자 4자리):');
     if (!pinCode) return;
+
+    if (!validatePin(pinCode)) return;
 
     try {
       const res = await fetch(`/api/comments/${commentId}/delete`, {
@@ -423,6 +448,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function handleCreatePostSubmit(e) {
     e.preventDefault();
+
+    const pinCode = elements.postPinInput.value.trim();
+
+    if (!validatePin(pinCode)) return;
 
     const formData = new FormData(elements.createPostForm);
     state.selectedFiles.forEach(file => formData.append('attachments', file));
@@ -444,8 +473,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function handleDeletePost() {
     if (!state.activePostId) return;
-    const pinCode = prompt('삭제 비밀번호:');
+    const pinCode = prompt('게시글 작성 시 설정한 삭제 비밀번호 (숫자 4자리):');
     if (!pinCode) return;
+
+    if (!validatePin(pinCode)) return;
 
     try {
       const res = await fetch(`/api/posts/${state.activePostId}/delete`, {

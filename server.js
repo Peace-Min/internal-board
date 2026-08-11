@@ -14,6 +14,11 @@ const UPLOADS_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
+// PIN 유효성 검사 헬퍼 (정확히 숫자 4자리)
+function isValidPin(pin) {
+  return /^\d{4}$/.test(String(pin || '').trim());
+}
+
 class MinimalBoardEngine {
   constructor() {
     this.dbFile = path.join(DATA_DIR, 'board_repository.json');
@@ -118,7 +123,7 @@ class MinimalBoardEngine {
       category: post.category,
       title: post.title,
       content: post.content,
-      content_type: post.content_type || 'text', // 'text' | 'markdown'
+      content_type: post.content_type || 'text',
       author: post.author,
       created_at: post.created_at,
       comments,
@@ -132,7 +137,7 @@ class MinimalBoardEngine {
       category,
       title,
       content,
-      content_type: contentType, // 일반 텍스트(text) vs 마크다운(markdown)
+      content_type: contentType,
       author,
       pin_code_hash: this.hashPin(pinCode),
       created_at: new Date().toISOString()
@@ -218,7 +223,7 @@ class MinimalBoardEngine {
   }
 
   hashPin(pin) {
-    return crypto.createHash('sha256').update(String(pin || '1234')).digest('hex');
+    return crypto.createHash('sha256').update(String(pin || '').trim()).digest('hex');
   }
 }
 
@@ -260,11 +265,16 @@ app.get('/api/posts/:id', (req, res) => {
   }
 });
 
+// 게시글 생성 (서버 PIN 유효성 검사 추가)
 app.post('/api/posts', upload.array('attachments', 10), (req, res) => {
   try {
     const { category, title, content, contentType, author, pinCode } = req.body;
     if (!category || !title || !content || !author || !pinCode) {
       return res.status(400).json({ success: false, message: '필수 입력값이 누락되었습니다.' });
+    }
+
+    if (!isValidPin(pinCode)) {
+      return res.status(400).json({ success: false, message: '삭제 비밀번호는 정확히 숫자 4자리로 입력하셔야 합니다. (예: 1234)' });
     }
 
     const created = dbEngine.createPost({
@@ -283,11 +293,17 @@ app.post('/api/posts', upload.array('attachments', 10), (req, res) => {
   }
 });
 
+// 게시글 삭제 (서버 PIN 검사)
 app.post('/api/posts/:id/delete', (req, res) => {
   try {
-    const result = dbEngine.deletePost(req.params.id, req.body.pinCode);
+    const { pinCode } = req.body;
+    if (!isValidPin(pinCode)) {
+      return res.status(400).json({ success: false, message: '비밀번호는 숫자 4자리입니다.' });
+    }
+
+    const result = dbEngine.deletePost(req.params.id, pinCode);
     if (!result.success) {
-      return res.status(401).json({ success: false, message: '비밀번호 불일치' });
+      return res.status(401).json({ success: false, message: '비밀번호가 일치하지 않습니다.' });
     }
     res.json({ success: true });
   } catch (err) {
@@ -295,12 +311,18 @@ app.post('/api/posts/:id/delete', (req, res) => {
   }
 });
 
+// 댓글 생성 (서버 PIN 유효성 검사)
 app.post('/api/posts/:id/comments', (req, res) => {
   try {
     const { author, content, pinCode } = req.body;
     if (!author || !content || !pinCode) {
       return res.status(400).json({ success: false, message: '작성자, 내용, 비밀번호를 입력해주세요.' });
     }
+
+    if (!isValidPin(pinCode)) {
+      return res.status(400).json({ success: false, message: '삭제 비밀번호는 정확히 숫자 4자리로 입력하셔야 합니다. (예: 1234)' });
+    }
+
     const comment = dbEngine.createComment({ postId: req.params.id, author, content, pinCode });
     res.json({ success: true, data: comment });
   } catch (err) {
@@ -308,11 +330,17 @@ app.post('/api/posts/:id/comments', (req, res) => {
   }
 });
 
+// 댓글 삭제 (서버 PIN 검사)
 app.post('/api/comments/:id/delete', (req, res) => {
   try {
-    const result = dbEngine.deleteComment(req.params.id, req.body.pinCode);
+    const { pinCode } = req.body;
+    if (!isValidPin(pinCode)) {
+      return res.status(400).json({ success: false, message: '비밀번호는 숫자 4자리입니다.' });
+    }
+
+    const result = dbEngine.deleteComment(req.params.id, pinCode);
     if (!result.success) {
-      return res.status(401).json({ success: false, message: '비밀번호 불일치' });
+      return res.status(401).json({ success: false, message: '비밀번호가 일치하지 않습니다.' });
     }
     res.json({ success: true });
   } catch (err) {
@@ -338,5 +366,5 @@ app.get('/api/download/:fileId', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[ContentType Board Server Running] Port: ${PORT}`);
+  console.log(`[Validated PIN Board Server Running] Port: ${PORT}`);
 });
