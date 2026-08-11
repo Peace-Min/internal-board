@@ -1,0 +1,13 @@
+# Node.js dependencies
+node_modules/
+
+# User uploaded files & runtime data
+uploads/*
+!uploads/.gitkeep
+data/*.db
+data/board_repository.json
+
+# Environment & Logs
+.env
+*.log
+.DS_Store
