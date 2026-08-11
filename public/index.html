@@ -41,7 +41,7 @@
           <span class="badge badge-count" id="total-count-badge">0건</span>
         </div>
 
-        <!-- 검색 영역: 드롭다운 + 키워드 입력 (기본값: 통합검색) -->
+        <!-- 검색 영역: 드롭다운 + 키워드 입력 -->
         <div class="search-box">
           <select id="search-type" class="search-select">
             <option value="all" selected>🔍 통합검색</option>
@@ -106,9 +106,19 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="post-title">제목 <span class="req">*</span></label>
-            <input type="text" id="post-title" name="title" placeholder="제목을 입력하세요" required>
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="post-title">제목 <span class="req">*</span></label>
+              <input type="text" id="post-title" name="title" placeholder="제목을 입력하세요" required>
+            </div>
+            <!-- 본문 형식 선택 드롭다운 (기본값: 일반 텍스트) -->
+            <div class="form-group flex-1">
+              <label for="post-content-type">작성 모드 (형식)</label>
+              <select id="post-content-type" name="contentType">
+                <option value="text" selected>📄 일반 텍스트 (Plain)</option>
+                <option value="markdown">📝 마크다운 (Markdown)</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group">
@@ -149,6 +159,7 @@
         <div class="view-meta-bar">
           <div class="meta-item">👤 작성자: <strong id="view-author">--</strong></div>
           <div class="meta-item">🕒 작성일: <span id="view-date">--</span></div>
+          <div class="meta-item">📝 형식: <span class="badge badge-count" id="view-content-type-badge">일반 텍스트</span></div>
         </div>
 
         <div class="view-content-box" id="view-content"></div>

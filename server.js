@@ -49,7 +49,6 @@ class MinimalBoardEngine {
     }
   }
 
-  // 검색 타겟 타겟팅 엔진 (searchType: all | title | author | file | comment)
   getPosts({ category, keyword, searchType = 'all', page = 1, limit = 15 }) {
     let list = this.state.posts;
     if (category && category !== 'all') {
@@ -75,7 +74,6 @@ class MinimalBoardEngine {
         if (searchType === 'file') return inFile;
         if (searchType === 'comment') return inComment;
 
-        // Default: 'all' (통합 검색)
         return inTitle || inAuthor || inContent || inFile || inComment;
       });
     }
@@ -120,6 +118,7 @@ class MinimalBoardEngine {
       category: post.category,
       title: post.title,
       content: post.content,
+      content_type: post.content_type || 'text', // 'text' | 'markdown'
       author: post.author,
       created_at: post.created_at,
       comments,
@@ -127,12 +126,13 @@ class MinimalBoardEngine {
     };
   }
 
-  createPost({ category, title, content, author, pinCode, files = [] }) {
+  createPost({ category, title, content, contentType = 'text', author, pinCode, files = [] }) {
     const newPost = {
       id: this.state.postSeq++,
       category,
       title,
       content,
+      content_type: contentType, // 일반 텍스트(text) vs 마크다운(markdown)
       author,
       pin_code_hash: this.hashPin(pinCode),
       created_at: new Date().toISOString()
@@ -262,7 +262,7 @@ app.get('/api/posts/:id', (req, res) => {
 
 app.post('/api/posts', upload.array('attachments', 10), (req, res) => {
   try {
-    const { category, title, content, author, pinCode } = req.body;
+    const { category, title, content, contentType, author, pinCode } = req.body;
     if (!category || !title || !content || !author || !pinCode) {
       return res.status(400).json({ success: false, message: '필수 입력값이 누락되었습니다.' });
     }
@@ -271,6 +271,7 @@ app.post('/api/posts', upload.array('attachments', 10), (req, res) => {
       category,
       title,
       content,
+      contentType: contentType || 'text',
       author,
       pinCode,
       files: req.files || []
@@ -337,5 +338,5 @@ app.get('/api/download/:fileId', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Targeted Search Server Running] Port: ${PORT}`);
+  console.log(`[ContentType Board Server Running] Port: ${PORT}`);
 });

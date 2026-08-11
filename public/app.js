@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewTitle: document.getElementById('view-title'),
     viewAuthor: document.getElementById('view-author'),
     viewDate: document.getElementById('view-date'),
+    viewContentTypeBadge: document.getElementById('view-content-type-badge'),
     viewContent: document.getElementById('view-content'),
     viewAttachmentsSection: document.getElementById('view-attachments-section'),
     viewAttachmentCards: document.getElementById('view-attachment-cards'),
@@ -220,9 +221,18 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.viewAuthor.textContent = post.author;
         elements.viewDate.textContent = formatDateFull(post.created_at);
 
-        // GitHub 스타일 마크다운 렌더링 적용!
-        elements.viewContent.className = 'view-content-box markdown-body';
-        elements.viewContent.innerHTML = parseMarkdown(post.content);
+        // 조건부 본문 렌더링 (markdown vs text)
+        const isMarkdown = post.content_type === 'markdown';
+        elements.viewContentTypeBadge.textContent = isMarkdown ? '📝 마크다운' : '📄 일반 텍스트';
+        
+        if (isMarkdown) {
+          elements.viewContent.className = 'view-content-box markdown-body';
+          elements.viewContent.innerHTML = parseMarkdown(post.content);
+        } else {
+          elements.viewContent.className = 'view-content-box';
+          // 일반 텍스트 모드: 이스케이프 + 줄바꿈만 유지 (부작용 없음)
+          elements.viewContent.innerHTML = escapeHtml(post.content).replace(/\n/g, '<br>');
+        }
 
         if (post.attachments && post.attachments.length > 0) {
           elements.viewAttachmentsSection.style.display = 'block';
@@ -247,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- 초경량 Pure JS Markdown Parser ---
+  // --- Pure JS Markdown Parser ---
   function parseMarkdown(text) {
     if (!text) return '';
     let html = escapeHtml(text);
@@ -273,11 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Horizontal Rule ---
     html = html.replace(/^---$/gim, '<hr>');
 
-    // Unordered List - item or * item
+    // Unordered List - item
     html = html.replace(/^\s*[-*] (.*$)/gim, '<ul><li>$1</li></ul>');
-    html = html.replace(/<\/ul>\n<ul>/g, ''); // 리스트 개행 합치기
+    html = html.replace(/<\/ul>\n<ul>/g, '');
 
-    // Line breaks to <br> (code block/pre 제외)
     const lines = html.split('\n');
     let inPre = false;
     let result = lines.map(line => {
