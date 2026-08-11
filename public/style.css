@@ -308,6 +308,7 @@ body {
   font-weight: 700;
 }
 
+/* --- Modal UI/UX Redesign --- */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -331,15 +332,15 @@ body {
   background: #1e293b;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 650px;
-  max-height: 90vh;
+  width: 92%;
+  max-width: 800px; /* 모달 폭 확장 */
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
 }
 
-.modal-card.modal-lg { max-width: 850px; }
+.modal-card.modal-lg { max-width: 900px; }
 
 .modal-header {
   padding: 18px 24px;
@@ -355,43 +356,60 @@ body {
 .modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
 .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; }
 
-.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .form-group label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
 .req { color: var(--danger); }
-.form-row { display: flex; gap: 12px; }
+.form-row { display: flex; gap: 12px; width: 100%; }
 .flex-1 { flex: 1; }
 .flex-2 { flex: 2; }
 
 input[type="text"], input[type="password"], select, textarea {
+  width: 100%;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 12px 14px;
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
+  font-family: inherit;
 }
 
-/* --- GitHub Style Editor Write / Preview Tabs --- */
+/* --- Editor Box & Textarea Layout UI/UX Refinement --- */
+#editor-write-box {
+  width: 100%;
+  display: block;
+}
+
+#post-content {
+  width: 100% !important;
+  min-height: 280px !important; /* 텍스트 입력창 높이 시원하게 확대 */
+  font-size: 15px;
+  line-height: 1.7;
+  resize: vertical;
+  display: block;
+}
+
 .editor-tab-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 4px;
-  margin-bottom: 8px;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  width: 100%;
 }
 
 .editor-tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .editor-tab {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-secondary);
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 13px;
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -417,16 +435,18 @@ input[type="text"], input[type="password"], select, textarea {
 }
 
 .preview-content-box {
+  width: 100%;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 16px;
-  min-height: 180px;
-  max-height: 300px;
+  padding: 20px;
+  min-height: 280px; /* 미리보기 박스 높이도 본문 입력창과 1:1로 맞춤 */
+  max-height: 400px;
   overflow-y: auto;
 }
 
 .file-dropzone {
+  width: 100%;
   border: 2px dashed var(--border-color);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -435,19 +455,20 @@ input[type="text"], input[type="password"], select, textarea {
   background: rgba(15, 23, 42, 0.4);
 }
 
-.file-preview-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.file-preview-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 13px; }
+.file-preview-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; width: 100%; }
+.file-preview-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; }
 .file-remove-btn { color: var(--danger); cursor: pointer; font-weight: bold; }
 
 .view-meta-bar { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); background: rgba(15, 23, 42, 0.5); padding: 10px 16px; border-radius: var(--radius-md); }
 
 /* --- GitHub Style Markdown Render Area --- */
 .view-content-box {
+  width: 100%;
   background: rgba(15, 23, 42, 0.3);
   border: 1px solid var(--border-color);
   padding: 24px;
   border-radius: var(--radius-md);
-  min-height: 150px;
+  min-height: 200px;
   font-size: 15px;
   line-height: 1.7;
   color: var(--text-primary);
