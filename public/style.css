@@ -387,7 +387,75 @@ input[type="text"], input[type="password"], select, textarea {
 .file-remove-btn { color: var(--danger); cursor: pointer; font-weight: bold; }
 
 .view-meta-bar { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); background: rgba(15, 23, 42, 0.5); padding: 10px 16px; border-radius: var(--radius-md); }
-.view-content-box { background: rgba(15, 23, 42, 0.3); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md); white-space: pre-wrap; min-height: 150px; font-size: 15px; }
+
+/* --- GitHub Style Markdown Render Area --- */
+.view-content-box {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  min-height: 150px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+  margin-top: 18px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.markdown-body h1 { font-size: 22px; }
+.markdown-body h2 { font-size: 18px; }
+.markdown-body h3 { font-size: 16px; }
+
+.markdown-body p { margin-bottom: 12px; }
+.markdown-body ul, .markdown-body ol { margin-left: 20px; margin-bottom: 12px; }
+.markdown-body li { margin-bottom: 4px; }
+
+.markdown-body blockquote {
+  border-left: 4px solid var(--accent-primary);
+  background: rgba(56, 189, 248, 0.08);
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-secondary);
+}
+
+.markdown-body code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  color: #f472b6;
+}
+
+.markdown-body pre {
+  background: #0f172a;
+  border: 1px solid var(--border-color);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  color: #38bdf8;
+}
+
+.markdown-body hr {
+  border: 0;
+  height: 1px;
+  background: var(--border-color);
+  margin: 16px 0;
+}
 
 .attachment-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 8px; }
 .attachment-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: var(--radius-md); text-decoration: none; color: var(--text-primary); }

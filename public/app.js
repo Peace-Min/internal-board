@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.btnSearch.addEventListener('click', executeSearch);
-
     elements.searchInput.addEventListener('keyup', (e) => {
       if (e.key === 'Enter') executeSearch();
     });
@@ -220,7 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.viewTitle.textContent = post.title;
         elements.viewAuthor.textContent = post.author;
         elements.viewDate.textContent = formatDateFull(post.created_at);
-        elements.viewContent.textContent = post.content;
+
+        // GitHub 스타일 마크다운 렌더링 적용!
+        elements.viewContent.className = 'view-content-box markdown-body';
+        elements.viewContent.innerHTML = parseMarkdown(post.content);
 
         if (post.attachments && post.attachments.length > 0) {
           elements.viewAttachmentsSection.style.display = 'block';
@@ -243,6 +245,51 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       alert('게시글 불러오기 실패');
     }
+  }
+
+  // --- 초경량 Pure JS Markdown Parser ---
+  function parseMarkdown(text) {
+    if (!text) return '';
+    let html = escapeHtml(text);
+
+    // Code blocks ```code```
+    html = html.replace(/```([\s\S]*?)```/g, (match, code) => `<pre><code>${code.trim()}</code></pre>`);
+    // Inline code `code`
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Headers #, ##, ###
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+    // Blockquotes >
+    html = html.replace(/^&gt; (.*$)/gim, '<blockquote>$1</blockquote>');
+
+    // Bold **text**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Italic *text*
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    // Horizontal Rule ---
+    html = html.replace(/^---$/gim, '<hr>');
+
+    // Unordered List - item or * item
+    html = html.replace(/^\s*[-*] (.*$)/gim, '<ul><li>$1</li></ul>');
+    html = html.replace(/<\/ul>\n<ul>/g, ''); // 리스트 개행 합치기
+
+    // Line breaks to <br> (code block/pre 제외)
+    const lines = html.split('\n');
+    let inPre = false;
+    let result = lines.map(line => {
+      if (line.includes('<pre>')) inPre = true;
+      if (line.includes('</pre>')) inPre = false;
+      if (!inPre && !line.startsWith('<h') && !line.startsWith('<ul') && !line.startsWith('<blockquote') && !line.startsWith('<hr')) {
+        return line + '<br>';
+      }
+      return line;
+    }).join('\n');
+
+    return result;
   }
 
   function renderComments(comments) {
