@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     searchKeyword: '',
     searchType: 'all',
     selectedFiles: [],
-    activePostId: null
+    activePostId: null,
+    currentEditorTab: 'write'
   };
 
   const elements = {
@@ -106,13 +107,22 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.btnCancelCreate.addEventListener('click', () => closeModal(elements.modalCreatePost));
     elements.btnCloseView.addEventListener('click', () => closeModal(elements.modalViewPost));
 
-    // Editor Write vs Preview Tab Switch
+    // Editor Write vs Preview 탭 이벤트
     elements.tabEditorWrite.addEventListener('click', () => switchEditorTab('write'));
     elements.tabEditorPreview.addEventListener('click', () => switchEditorTab('preview'));
 
+    // 작성 모드(드롭다운) 변경 시 즉시 미리보기 갱신!
     elements.postContentTypeSelect.addEventListener('change', (e) => {
       const isMd = e.target.value === 'markdown';
       elements.editorModeHint.textContent = isMd ? '📝 마크다운 서식 작성 중 (Preview 지원)' : '📄 일반 텍스트 작성 중';
+      updatePreview(); // 즉시 미리보기 리렌더링
+    });
+
+    // 본문 내용 작성(input) 중에도 미리보기 실시간 자동 갱신!
+    elements.postContentTextarea.addEventListener('input', () => {
+      if (state.currentEditorTab === 'preview') {
+        updatePreview();
+      }
     });
 
     elements.fileDropzone.addEventListener('click', () => elements.fileInput.click());
@@ -140,8 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.btnSubmitComment.addEventListener('click', handleCreateComment);
   }
 
-  // --- GitHub Style Write / Preview Tab Switch ---
+  // Editor Write / Preview 탭 스위칭
   function switchEditorTab(tabName) {
+    state.currentEditorTab = tabName;
     if (tabName === 'write') {
       elements.tabEditorWrite.classList.add('active');
       elements.tabEditorPreview.classList.remove('active');
@@ -152,21 +163,26 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.tabEditorPreview.classList.add('active');
       elements.editorWriteBox.style.display = 'none';
       elements.editorPreviewBox.style.display = 'block';
+      updatePreview();
+    }
+  }
 
-      // Preview 렌더링
-      const text = elements.postContentTextarea.value.trim();
-      const isMarkdownMode = elements.postContentTypeSelect.value === 'markdown';
+  // 실시간 미리보기 렌더링 업데이트 함수 (독립 갱신 엔진)
+  function updatePreview() {
+    const text = elements.postContentTextarea.value.trim();
+    const isMarkdownMode = elements.postContentTypeSelect.value === 'markdown';
 
-      if (!text) {
-        elements.editorPreviewBox.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">미리볼 내용이 없습니다. 먼저 작성 탭에서 내용을 입력하세요.</p>`;
-        return;
-      }
+    if (!text) {
+      elements.editorPreviewBox.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">미리볼 내용이 없습니다. 먼저 작성 탭에서 내용을 입력하세요.</p>`;
+      return;
+    }
 
-      if (isMarkdownMode) {
-        elements.editorPreviewBox.innerHTML = parseMarkdown(text);
-      } else {
-        elements.editorPreviewBox.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
-      }
+    if (isMarkdownMode) {
+      elements.editorPreviewBox.className = 'preview-content-box markdown-body';
+      elements.editorPreviewBox.innerHTML = parseMarkdown(text);
+    } else {
+      elements.editorPreviewBox.className = 'preview-content-box';
+      elements.editorPreviewBox.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
     }
   }
 
@@ -305,7 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Pure JS Markdown Parser
   function parseMarkdown(text) {
     if (!text) return '';
     let html = escapeHtml(text);
