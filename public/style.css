@@ -158,7 +158,6 @@ body {
 .badge-qna { background: rgba(251, 191, 36, 0.2); color: var(--cat-qna); border: 1px solid var(--cat-qna); }
 .badge-share { background: rgba(52, 211, 153, 0.2); color: var(--cat-share); border: 1px solid var(--cat-share); }
 
-/* Search Box & Dropdown */
 .search-box {
   display: flex;
   align-items: center;
@@ -371,6 +370,60 @@ input[type="text"], input[type="password"], select, textarea {
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
+}
+
+/* --- GitHub Style Editor Write / Preview Tabs --- */
+.editor-tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.editor-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.editor-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.editor-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.editor-tab.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-primary);
+  font-weight: 600;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.editor-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.preview-content-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  min-height: 180px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .file-dropzone {

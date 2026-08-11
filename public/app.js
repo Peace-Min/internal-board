@@ -24,6 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCancelCreate: document.getElementById('btn-cancel-create'),
     createPostForm: document.getElementById('create-post-form'),
     postCategorySelect: document.getElementById('post-category'),
+    postContentTypeSelect: document.getElementById('post-content-type'),
+    postContentTextarea: document.getElementById('post-content'),
+    
+    // Editor Tabs & Preview
+    tabEditorWrite: document.getElementById('tab-editor-write'),
+    tabEditorPreview: document.getElementById('tab-editor-preview'),
+    editorWriteBox: document.getElementById('editor-write-box'),
+    editorPreviewBox: document.getElementById('editor-preview-box'),
+    editorModeHint: document.getElementById('editor-mode-hint'),
+
     fileDropzone: document.getElementById('file-dropzone'),
     fileInput: document.getElementById('file-input'),
     filePreviewList: document.getElementById('file-preview-list'),
@@ -88,12 +98,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.currentCategory !== 'all') {
         elements.postCategorySelect.value = state.currentCategory;
       }
+      switchEditorTab('write');
       openModal(elements.modalCreatePost);
     });
 
     elements.btnCloseCreate.addEventListener('click', () => closeModal(elements.modalCreatePost));
     elements.btnCancelCreate.addEventListener('click', () => closeModal(elements.modalCreatePost));
     elements.btnCloseView.addEventListener('click', () => closeModal(elements.modalViewPost));
+
+    // Editor Write vs Preview Tab Switch
+    elements.tabEditorWrite.addEventListener('click', () => switchEditorTab('write'));
+    elements.tabEditorPreview.addEventListener('click', () => switchEditorTab('preview'));
+
+    elements.postContentTypeSelect.addEventListener('change', (e) => {
+      const isMd = e.target.value === 'markdown';
+      elements.editorModeHint.textContent = isMd ? '📝 마크다운 서식 작성 중 (Preview 지원)' : '📄 일반 텍스트 작성 중';
+    });
 
     elements.fileDropzone.addEventListener('click', () => elements.fileInput.click());
     elements.fileInput.addEventListener('change', (e) => {
@@ -118,6 +138,36 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.createPostForm.addEventListener('submit', handleCreatePostSubmit);
     elements.btnDeletePost.addEventListener('click', handleDeletePost);
     elements.btnSubmitComment.addEventListener('click', handleCreateComment);
+  }
+
+  // --- GitHub Style Write / Preview Tab Switch ---
+  function switchEditorTab(tabName) {
+    if (tabName === 'write') {
+      elements.tabEditorWrite.classList.add('active');
+      elements.tabEditorPreview.classList.remove('active');
+      elements.editorWriteBox.style.display = 'block';
+      elements.editorPreviewBox.style.display = 'none';
+    } else {
+      elements.tabEditorWrite.classList.remove('active');
+      elements.tabEditorPreview.classList.add('active');
+      elements.editorWriteBox.style.display = 'none';
+      elements.editorPreviewBox.style.display = 'block';
+
+      // Preview 렌더링
+      const text = elements.postContentTextarea.value.trim();
+      const isMarkdownMode = elements.postContentTypeSelect.value === 'markdown';
+
+      if (!text) {
+        elements.editorPreviewBox.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">미리볼 내용이 없습니다. 먼저 작성 탭에서 내용을 입력하세요.</p>`;
+        return;
+      }
+
+      if (isMarkdownMode) {
+        elements.editorPreviewBox.innerHTML = parseMarkdown(text);
+      } else {
+        elements.editorPreviewBox.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+      }
+    }
   }
 
   function executeSearch() {
@@ -221,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.viewAuthor.textContent = post.author;
         elements.viewDate.textContent = formatDateFull(post.created_at);
 
-        // 조건부 본문 렌더링 (markdown vs text)
         const isMarkdown = post.content_type === 'markdown';
         elements.viewContentTypeBadge.textContent = isMarkdown ? '📝 마크다운' : '📄 일반 텍스트';
         
@@ -230,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
           elements.viewContent.innerHTML = parseMarkdown(post.content);
         } else {
           elements.viewContent.className = 'view-content-box';
-          // 일반 텍스트 모드: 이스케이프 + 줄바꿈만 유지 (부작용 없음)
           elements.viewContent.innerHTML = escapeHtml(post.content).replace(/\n/g, '<br>');
         }
 
@@ -257,33 +305,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- Pure JS Markdown Parser ---
+  // Pure JS Markdown Parser
   function parseMarkdown(text) {
     if (!text) return '';
     let html = escapeHtml(text);
 
-    // Code blocks ```code```
     html = html.replace(/```([\s\S]*?)```/g, (match, code) => `<pre><code>${code.trim()}</code></pre>`);
-    // Inline code `code`
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-    // Headers #, ##, ###
     html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
     html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
     html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
-    // Blockquotes >
     html = html.replace(/^&gt; (.*$)/gim, '<blockquote>$1</blockquote>');
 
-    // Bold **text**
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Italic *text*
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
-    // Horizontal Rule ---
     html = html.replace(/^---$/gim, '<hr>');
 
-    // Unordered List - item
     html = html.replace(/^\s*[-*] (.*$)/gim, '<ul><li>$1</li></ul>');
     html = html.replace(/<\/ul>\n<ul>/g, '');
 
