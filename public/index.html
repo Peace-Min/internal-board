@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>사내 경량 게시판</title>
+  <title>사내 경량 게시판 - Intranet Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -16,16 +16,17 @@
       <div class="brand-area">
         <div class="brand-icon">🏢</div>
         <div class="brand-text">
-          <h1>사내 게시판</h1>
+          <h1>사내 통합 웹 게시판</h1>
+          <span class="sub-title">Intranet Isolated Hub System</span>
         </div>
       </div>
 
       <!-- 카테고리 탭 -->
       <nav class="category-nav">
-        <button class="nav-tab active" data-category="all">전체보기</button>
-        <button class="nav-tab" data-category="free">자유게시판</button>
-        <button class="nav-tab" data-category="qna">질문게시판</button>
-        <button class="nav-tab" data-category="share">자료공유</button>
+        <button class="nav-tab active" data-category="all">📌 전체보기</button>
+        <button class="nav-tab" data-category="free">💬 자유게시판</button>
+        <button class="nav-tab" data-category="qna">❓ 질문게시판</button>
+        <button class="nav-tab" data-category="share">📁 자료공유</button>
       </nav>
 
       <div class="header-actions">
@@ -41,7 +42,7 @@
           <span class="badge badge-count" id="total-count-badge">0건</span>
         </div>
 
-        <!-- 검색 영역: 드롭다운 + 키워드 입력 -->
+        <!-- 검색 영역: 통합검색 드롭다운 + 키워드 입력 -->
         <div class="search-box">
           <select id="search-type" class="search-select">
             <option value="all" selected>🔍 통합검색</option>
@@ -50,8 +51,8 @@
             <option value="file">📁 첨부파일명</option>
             <option value="comment">💬 댓글내용</option>
           </select>
-          <input type="text" id="search-input" placeholder="검색어 입력..." autocomplete="off">
-          <button id="btn-search" class="btn btn-icon-only">🔍</button>
+          <input type="text" id="search-input" placeholder="검색어를 입력하세요..." autocomplete="off">
+          <button id="btn-search" class="btn btn-icon-only" title="검색">🔍</button>
         </div>
       </section>
 
@@ -61,14 +62,14 @@
           <table class="board-table">
             <thead>
               <tr>
-                <th style="width: 120px;">분류</th>
+                <th style="width: 130px;">분류</th>
                 <th>제목</th>
-                <th style="width: 140px;">작성자</th>
-                <th style="width: 120px;">작성일</th>
+                <th style="width: 150px;">작성자</th>
+                <th style="width: 130px;">작성일</th>
               </tr>
             </thead>
             <tbody id="posts-tbody">
-              <tr><td colspan="4" class="loading-cell">게시글 로딩 중...</td></tr>
+              <tr><td colspan="4" class="loading-cell">게시글을 불러오는 중입니다...</td></tr>
             </tbody>
           </table>
         </div>
@@ -78,37 +79,37 @@
     </main>
   </div>
 
-  <!-- 글쓰기 모달 (GitHub 스타일 Write / Preview 탭 지원) -->
+  <!-- 글쓰기 모달 (UI/UX 대폭 개선) -->
   <div class="modal-backdrop" id="modal-create-post">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>✏️ 게시글 등록</h3>
+        <h3>✏️ 새로운 게시글 등록</h3>
         <button class="modal-close" id="btn-close-create">&times;</button>
       </div>
       <form id="create-post-form" enctype="multipart/form-data">
         <div class="modal-body">
           <div class="form-row">
             <div class="form-group flex-1">
-              <label for="post-category">게시판 선택</label>
+              <label for="post-category">게시판 카테고리 <span class="req">*</span></label>
               <select id="post-category" name="category" required>
-                <option value="free">자유게시판</option>
-                <option value="qna">질문게시판</option>
-                <option value="share">자료공유</option>
+                <option value="free">💬 자유게시판</option>
+                <option value="qna">❓ 질문게시판</option>
+                <option value="share">📁 자료공유</option>
               </select>
             </div>
             <div class="form-group flex-1">
-              <label for="post-author">작성자 <span class="req">*</span></label>
-              <input type="text" id="post-author" name="author" placeholder="이름" required>
+              <label for="post-author">작성자 성명 <span class="req">*</span></label>
+              <input type="text" id="post-author" name="author" placeholder="예: 홍길동 대리" required>
             </div>
             <div class="form-group flex-1">
-              <label for="post-pincode">삭제 비밀번호 <span class="req">*</span></label>
-              <input type="password" id="post-pincode" name="pinCode" placeholder="암호" required>
+              <label for="post-pincode">삭제 암호 (PIN 4자리) <span class="req">*</span></label>
+              <input type="password" id="post-pincode" name="pinCode" placeholder="숫자 4자리" required maxlength="10">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group flex-2">
-              <label for="post-title">제목 <span class="req">*</span></label>
+              <label for="post-title">게시글 제목 <span class="req">*</span></label>
               <input type="text" id="post-title" name="title" placeholder="제목을 입력하세요" required>
             </div>
             <div class="form-group flex-1">
@@ -127,12 +128,12 @@
                 <button type="button" class="editor-tab active" id="tab-editor-write">✏️ 작성 (Write)</button>
                 <button type="button" class="editor-tab" id="tab-editor-preview">👁️ 미리보기 (Preview)</button>
               </div>
-              <span class="editor-hint" id="editor-mode-hint">일반 텍스트 작성 중</span>
+              <span class="editor-hint" id="editor-mode-hint">📄 일반 텍스트 작성 중</span>
             </div>
 
             <!-- Write textarea -->
             <div id="editor-write-box">
-              <textarea id="post-content" name="content" rows="8" placeholder="내용을 입력하세요..." required></textarea>
+              <textarea id="post-content" name="content" rows="10" placeholder="자유롭게 본문 내용을 작성해 주세요..." required></textarea>
             </div>
 
             <!-- Preview box -->
@@ -145,7 +146,7 @@
             <label>첨부파일 (자유롭게 업로드 가능)</label>
             <div class="file-dropzone" id="file-dropzone">
               <div class="dropzone-prompt">
-                <p>📤 클릭하거나 파일을 드래그하여 첨부하세요.</p>
+                <p>📤 파일을 여기에 드래그하거나 <strong>클릭하여 첨부</strong>하세요.</p>
               </div>
               <input type="file" id="file-input" name="attachments" multiple style="display: none;">
             </div>
@@ -154,7 +155,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="btn-cancel-create">취소</button>
-          <button type="submit" class="btn btn-primary">등록하기</button>
+          <button type="submit" class="btn btn-primary">게시글 등록하기</button>
         </div>
       </form>
     </div>
@@ -197,7 +198,7 @@
             <div class="form-row">
               <input type="text" id="comment-author" placeholder="이름" style="max-width: 140px;">
               <input type="password" id="comment-pin" placeholder="암호" style="max-width: 100px;">
-              <input type="text" id="comment-content" placeholder="댓글 내용..." class="flex-2">
+              <input type="text" id="comment-content" placeholder="댓글 내용을 입력하세요..." class="flex-2">
               <button class="btn btn-primary" id="btn-submit-comment">등록</button>
             </div>
           </div>
